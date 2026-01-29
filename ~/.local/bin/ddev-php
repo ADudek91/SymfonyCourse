@@ -1,0 +1,34 @@
+#!/bin/bash
+# Wrapper script to use PHP from DDEV container in Cursor/VS Code
+# Usage: This script should be used as PHP executable path in IDE settings
+
+# Get the directory of the current file (if called from a project)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR=""
+
+# Try to find DDEV project directory by looking for .ddev folder
+CURRENT_DIR="$PWD"
+while [ "$CURRENT_DIR" != "/" ]; do
+    if [ -d "$CURRENT_DIR/.ddev" ]; then
+        PROJECT_DIR="$CURRENT_DIR"
+        break
+    fi
+    CURRENT_DIR="$(dirname "$CURRENT_DIR")"
+done
+
+# If no project found, try to use the workspace directory
+if [ -z "$PROJECT_DIR" ]; then
+    # Try common workspace locations
+    if [ -d "$HOME/code/symfonyFCC/.ddev" ]; then
+        PROJECT_DIR="$HOME/code/symfonyFCC"
+    fi
+fi
+
+# If still no project, exit with error
+if [ -z "$PROJECT_DIR" ]; then
+    echo "Error: Could not find DDEV project directory" >&2
+    exit 1
+fi
+
+# Execute PHP command in DDEV container
+cd "$PROJECT_DIR" && ddev exec php "$@"
